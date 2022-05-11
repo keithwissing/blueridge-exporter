@@ -18,7 +18,7 @@ used_down = Gauge('blueridge_data_used_down', 'Downstream data used this month i
 used_up = Gauge('blueridge_data_used_up', 'Upstream data used this month in GB')
 
 # Cache metrics for how long (seconds)?
-cache_seconds = int(os.environ.get('SPEEDTEST_CACHE_FOR', 0))
+cache_seconds = int(os.environ.get('EXPORTER_CACHE_FOR', 0))
 cache_until = datetime.datetime.fromtimestamp(0)
 
 def runTest():
