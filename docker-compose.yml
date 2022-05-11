@@ -1,0 +1,12 @@
+version: "3.0"
+services:
+  blueridge-exporter:
+    image: blueridge-exporter
+    container_name: blueridge-exporter
+    env_file:
+      - .env
+    environment:
+      - EXPORTER_PORT=1987
+    ports:
+      - 1987:1987
+    restart: unless-stopped
