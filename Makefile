@@ -1,6 +1,5 @@
-ifneq ("$(wildcard ../Makefile.compose)","")
-	include ../Makefile.compose
-endif
+# Optionally include a compose makefile if needed
+-include ../Makefile.compose
 
 none:
 
