@@ -1,4 +1,6 @@
-include ../Makefile.compose
+ifneq ("$(wildcard ../Makefile.compose)","")
+	include ../Makefile.compose
+endif
 
 none:
 
