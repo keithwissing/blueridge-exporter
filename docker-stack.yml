@@ -1,0 +1,19 @@
+version: "3.0"
+services:
+  blueridge-exporter:
+    image: kwissing/blueridge-exporter
+    container_name: blueridge-exporter
+    environment:
+      - EXPORTER_PORT=1987
+    ports:
+      - 1987:1987
+    restart: unless-stopped
+    secrets:
+      - blueridge_username
+      - blueridge_password
+
+secrets:
+  blueridge_username:
+    external: true
+  blueridge_password:
+    external: true
