@@ -62,7 +62,7 @@ def hello_metrics():
 
 def main():
     logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
-    port = os.getenv('EXPORTER_PORT', 9798)
+    port = os.getenv('EXPORTER_PORT', 1987)
     if USE_DEBUG_SERVER:
         app.run(port=port)
     else:

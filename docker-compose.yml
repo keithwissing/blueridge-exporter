@@ -7,6 +7,7 @@ services:
       - .env
     environment:
       - EXPORTER_PORT=1987
+      - EXPORTER_CACHE_TIMEOUT=300
     ports:
       - 1987:1987
     restart: unless-stopped
