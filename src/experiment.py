@@ -7,15 +7,18 @@ import mechanize
 from bs4 import BeautifulSoup
 from get_docker_secret import get_docker_secret
 
+from simplecache import file_cached
+
 def get_configuration() -> dict[str, str]:
     uname = get_docker_secret('blueridge_username')
     if not uname:
-        return None
+        return {}
     passwd = get_docker_secret('blueridge_password')
     influx_host = get_docker_secret('influx_host')
     influx_db = get_docker_secret('influx_db')
     return {'uname': uname, 'passwd': passwd, 'influx_host': influx_host, 'influx_db': influx_db}
 
+@file_cached()
 def get_first_page(br, username: str, password: str):
     br.open("https://www.brctv.com/login")
 
@@ -32,6 +35,7 @@ def find_uid(html):
 
     ajax_divs = soup.find_all('div', class_='mbr-ajax-loader')
 
+    uid = None
     prefix = '/ajax/services/usage/brief/'
     for div in ajax_divs:
         link = div['data-ajax-content']
@@ -39,6 +43,7 @@ def find_uid(html):
             uid = link[len(prefix):]
     return uid
 
+@file_cached()
 def get_usage_data(br, uid):
     usage = f'https://www.brctv.com/ajax/services/usage/full/{uid}'
     br.open(usage)
@@ -56,6 +61,7 @@ def find_usage_data(json_data):
     logging.debug(f'Usage: {things}')
     return things
 
+@file_cached()
 def get_internet_usage(br):
     url = 'https://www.brctv.com/my/services/internet-usage'
     br.open(url)
@@ -63,7 +69,9 @@ def get_internet_usage(br):
     return html
 
 def parse_usage_string(usage_str):
-    m = re.match(r'CABLE MODEM Up to (.+) Download/(.+) Upload MAC: (.+) You have used (.+): (.+) upload & (.+) download. Your limit is (.+). You have (.+) remaining.', usage_str)
+    m = re.match(
+        r'CABLE MODEM Up to (.+) Download/(.+) Upload MAC: (.+) You have used (.+): (.+) upload & (.+) download. Your limit is (.+). You have (.+) remaining.',
+        usage_str)
     if not m:
         logging.error('Usage String did not match expected format:')
         logging.error(usage_str)
@@ -74,7 +82,6 @@ def parse_usage_string(usage_str):
 
 def find_another_data(html):
     soup = BeautifulSoup(html, 'html.parser')
-    intro = soup.find_all('div')
     intro = soup.find_all(id='data-usage-intro')
     intro = intro[0].get_text()
     intro = ' '.join(intro.split())
