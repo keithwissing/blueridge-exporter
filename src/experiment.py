@@ -10,7 +10,7 @@ from get_docker_secret import get_docker_secret
 def get_configuration() -> dict[str, str]:
     uname = get_docker_secret('blueridge_username')
     if not uname:
-        return None
+        return {}
     passwd = get_docker_secret('blueridge_password')
     influx_host = get_docker_secret('influx_host')
     influx_db = get_docker_secret('influx_db')
@@ -32,6 +32,7 @@ def find_uid(html):
 
     ajax_divs = soup.find_all('div', class_='mbr-ajax-loader')
 
+    uid = None
     prefix = '/ajax/services/usage/brief/'
     for div in ajax_divs:
         link = div['data-ajax-content']
@@ -63,7 +64,9 @@ def get_internet_usage(br):
     return html
 
 def parse_usage_string(usage_str):
-    m = re.match(r'CABLE MODEM Up to (.+) Download/(.+) Upload MAC: (.+) You have used (.+): (.+) upload & (.+) download. Your limit is (.+). You have (.+) remaining.', usage_str)
+    m = re.match(
+        r'CABLE MODEM Up to (.+) Download/(.+) Upload MAC: (.+) You have used (.+): (.+) upload & (.+) download. Your limit is (.+). You have (.+) remaining.',
+        usage_str)
     if not m:
         logging.error('Usage String did not match expected format:')
         logging.error(usage_str)
@@ -74,7 +77,6 @@ def parse_usage_string(usage_str):
 
 def find_another_data(html):
     soup = BeautifulSoup(html, 'html.parser')
-    intro = soup.find_all('div')
     intro = soup.find_all(id='data-usage-intro')
     intro = intro[0].get_text()
     intro = ' '.join(intro.split())

@@ -1,64 +1,73 @@
-import datetime
 import logging
 import os
 
 from flask import Flask
-from prometheus_client import Gauge, make_wsgi_app
+from prometheus_client import make_wsgi_app, Gauge, Info
 from waitress import serve
 
 from experiment import get_all_usage
+from simplecache import timed_memory_cache
 
-app = Flask("Blueridge-Exporter")  # Create flask app
+app = Flask('blueridge-exporter')
 
-# Create Metrics
-data_remaining = Gauge('blueridge_data_remaining', 'Remaining data available this month in GB')
-data_used = Gauge('blueridge_data_used', 'Data used this month in GB')
-limit = Gauge('blueridge_data_limit', 'Monthy data usage limit in GB')
-used_down = Gauge('blueridge_data_used_down', 'Downstream data used this month in GB')
-used_up = Gauge('blueridge_data_used_up', 'Upstream data used this month in GB')
+USE_DEBUG_SERVER = False
 
-# Cache metrics for how long (seconds)?
-cache_seconds = int(os.environ.get('EXPORTER_CACHE_FOR', 0))
-cache_until = datetime.datetime.fromtimestamp(0)
+metrics = {
+    'data_remaining': ('blueridge_data_remaining', 'Remaining data available this month in GB'),
+    'data_used': ('blueridge_data_used', 'Data used this month in GB'),
+    'limit': ('blueridge_data_limit', 'Monthly data usage limit in GB'),
+    'used_down': ('blueridge_data_used_down', 'Downstream data used this month in GB'),
+    'used_up': ('blueridge_data_used_up', 'Upstream data used this month in GB')
+}
 
-def runTest():
-    usage = get_all_usage()
-    return {x[0]: x[1] for x in usage}
+gauges = {}
 
-@app.route("/metrics")
-def updateResults():
-    global cache_until
+def get_gauge(name, description):
+    if name not in gauges:
+        gauges[name] = Gauge(name, description)
+    return gauges[name]
 
-    if datetime.datetime.now() > cache_until:
-        usage = runTest()
-        data_remaining.set(usage['data_remaining'])
-        data_used.set(usage['data_used'])
-        limit.set(usage['limit'])
-        used_down.set(usage['used_down'])
-        used_up.set(usage['used_up'])
-        cache_until = datetime.datetime.now() + datetime.timedelta(seconds=cache_seconds)
+def get_info(name, description):
+    if not get_info.info:
+        get_info.info = Info(name, description)
+    return get_info.info
+
+get_info.info = None
+
+@timed_memory_cache(seconds=int(os.getenv('EXPORTER_CACHE_TIMEOUT', '300')))
+def get_metrics():
+    return get_all_usage()
+
+@app.route('/')
+def hello_world():
+    return '<h1>Blueridge-Exporter</h1><a href="metrics">Metrics</a>'
+
+@app.route('/metrics')
+def hello_metrics():
+    usage = get_metrics()
+    usage = {k: v for k, v in usage}
+
+    for k in metrics.keys():
+        name, description = metrics[k]
+        g = get_gauge(name, description)
+        g.set(float(usage[k]))
+
+    g = get_gauge('blueridge_days_remaining', 'Days remaining in this cycle')
+    g.set(int(usage['monthly_cycle'].split()[0]))
+
+    i = get_info('blueridge_plan', 'Blueridge service information')
+    i.info({k: v for k, v in usage.items() if k in ['mac', 'downstream', 'upstream']})
 
     return make_wsgi_app()
 
-@app.route("/")
-def mainPage():
-    return ("<h1>Welcome to Blueridge-Exporter.</h1>" +
-            "Click <a href='/metrics'>here</a> to see metrics.")
-
-def setup_logging():
-    # Setup logging values
-    format_string = 'level=%(levelname)s datetime=%(asctime)s %(message)s'
-    logging.basicConfig(encoding='utf-8', level=logging.DEBUG, format=format_string)
-
-    # Disable Waitress Logs
-    log = logging.getLogger('waitress')
-    log.disabled = True
-
 def main():
-    setup_logging()
-    PORT = os.getenv('EXPORTER_PORT', 9798)
-    logging.info(f'Starting Blueridge-Exporter on http://localhost:{PORT}')
-    serve(app, host='0.0.0.0', port=PORT)
+    logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+    port = os.getenv('EXPORTER_PORT', 9798)
+    if USE_DEBUG_SERVER:
+        app.run(port=port)
+    else:
+        # https://stackoverflow.com/a/54381386/125170 - use Waitress, a production WSGI server
+        serve(app, host="0.0.0.0", port=port)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
