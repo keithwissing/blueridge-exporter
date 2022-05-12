@@ -6,7 +6,7 @@ from prometheus_client import make_wsgi_app, Gauge, Info
 from waitress import serve
 
 from experiment import get_all_usage
-from src.simplecache import timed_memory_cache
+from simplecache import timed_memory_cache
 
 app = Flask('blueridge-exporter')
 
