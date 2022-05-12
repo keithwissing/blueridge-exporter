@@ -6,6 +6,7 @@ from prometheus_client import make_wsgi_app, Gauge, Info
 from waitress import serve
 
 from experiment import get_all_usage
+from src.simplecache import timed_memory_cache
 
 app = Flask('blueridge-exporter')
 
@@ -19,13 +20,17 @@ metrics = {
     'used_up': ('blueridge_data_used_up', 'Upstream data used this month in GB')
 }
 
+@timed_memory_cache(seconds=int(os.getenv('EXPORTER_CACHE_TIMEOUT', '300')))
+def get_metrics():
+    return get_all_usage()
+
 @app.route('/')
 def hello_world():
     return '<h1>Blueridge-Exporter</h1><a href="metrics">Metrics</a>'
 
 @app.route('/metrics')
 def hello_metrics():
-    usage = get_all_usage()
+    usage = get_metrics()
     usage = {k: v for k, v in usage}
 
     for k in metrics.keys():

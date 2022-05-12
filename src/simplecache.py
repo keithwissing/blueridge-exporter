@@ -2,21 +2,45 @@ import functools
 import os
 import pickle
 import string
+from time import monotonic_ns
 from typing import Any
+
+def timed_memory_cache(_func=None, *, seconds: int = 7000, maxsize: int = 128, typed: bool = False) -> Any:
+    """
+    A function that creates a decorator with a time limited lru_cache
+    """
+
+    def decorator(fn: Any) -> Any:
+        f = functools.lru_cache(maxsize=maxsize, typed=typed)(fn)
+        f.delta = seconds * 10 ** 9
+        f.expiration = monotonic_ns() + f.delta
+
+        @functools.wraps(fn)
+        def wrapped(*args: Any, **kwargs: Any) -> Any:
+            if monotonic_ns() >= f.expiration:
+                f.cache_clear()
+                f.expiration = monotonic_ns() + f.delta
+            return f(*args, **kwargs)
+
+        wrapped.cache_info = f.cache_info
+        wrapped.cache_clear = f.cache_clear
+
+        return wrapped
+
+    return decorator
 
 def clean_filename(filename: str) -> str:
     whitelist = set(string.ascii_letters + string.digits + string.digits + '~!@#$%^&*()-_=+[{}];,.?')
     return ''.join(c for c in filename if c in whitelist)
 
-def file_cached() -> Any:
+def file_cache() -> Any:
     """
     A function that creates a decorator which will use "cachefile" for caching the results of the decorated function "fn".
     """
 
     def decorator(fn: Any) -> Any:  # define a decorator for a function "fn"
         @functools.wraps(fn)
-        def wrapped(*args: Any,
-                    **kwargs: Any) -> Any:  # define a wrapper that will finally call "fn" with all arguments
+        def wrapped(*args: Any, **kwargs: Any) -> Any:  # define a wrapper that will finally call "fn" with all arguments
 
             parts = [fn.__name__]
             # if args:
