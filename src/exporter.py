@@ -20,6 +20,20 @@ metrics = {
     'used_up': ('blueridge_data_used_up', 'Upstream data used this month in GB')
 }
 
+gauges = {}
+
+def get_gauge(name, description):
+    if name not in gauges:
+        gauges[name] = Gauge(name, description)
+    return gauges[name]
+
+def get_info(name, description):
+    if not get_info.info:
+        get_info.info = Info(name, description)
+    return get_info.info
+
+get_info.info = None
+
 @timed_memory_cache(seconds=int(os.getenv('EXPORTER_CACHE_TIMEOUT', '300')))
 def get_metrics():
     return get_all_usage()
@@ -35,13 +49,13 @@ def hello_metrics():
 
     for k in metrics.keys():
         name, description = metrics[k]
-        g = Gauge(name, description)
+        g = get_gauge(name, description)
         g.set(float(usage[k]))
 
-    g = Gauge('blueridge_days_remaining', 'Days remiaing in this cycle')
+    g = get_gauge('blueridge_days_remaining', 'Days remaining in this cycle')
     g.set(int(usage['monthly_cycle'].split()[0]))
 
-    i = Info('blueridge_plan', 'Blueridge service information')
+    i = get_info('blueridge_plan', 'Blueridge service information')
     i.info({k: v for k, v in usage.items() if k in ['mac', 'downstream', 'upstream']})
 
     return make_wsgi_app()

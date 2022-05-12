@@ -51,17 +51,17 @@ def file_cache() -> Any:
 
             # if cache exists -> load it and return its content
             if os.path.exists(cachefile):
-                with open(cachefile, 'rb') as cachehandle:
+                with open(cachefile, 'rb') as cache_handle:
                     # print(f"using cached result from '{cachefile}'")
-                    return pickle.load(cachehandle)
+                    return pickle.load(cache_handle)
 
             # execute the function with all arguments passed
             res = fn(*args, **kwargs)
 
             # write to cache file
-            with open(cachefile, 'wb') as cachehandle:
+            with open(cachefile, 'wb') as cache_handle:
                 # print(f"saving result to cache '{cachefile}'")
-                pickle.dump(res, cachehandle)
+                pickle.dump(res, cache_handle)
 
             return res
 
