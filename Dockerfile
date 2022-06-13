@@ -1,4 +1,4 @@
-FROM python:3.10.4-slim
+FROM python:3.10.5-slim
 LABEL org.opencontainers.image.source=https://github.com/keithwissing/blueridge-exporter
 LABEL description="Docker container to collect metrics from Blue Ridge internet"
 
