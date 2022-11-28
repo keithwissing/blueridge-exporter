@@ -6,6 +6,9 @@ none:
 build:
 	docker build -t blueridge-exporter .
 
+test-run:
+	docker run --rm -it --env-file .env blueridge-exporter --test
+
 stack-deploy:
 	docker stack deploy -c docker-stack.yml blueridge-exporter
 
