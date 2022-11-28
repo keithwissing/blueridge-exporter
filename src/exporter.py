@@ -1,8 +1,10 @@
+import argparse
 import logging
 import os
+from tempfile import NamedTemporaryFile
 
 from flask import Flask
-from prometheus_client import make_wsgi_app, Gauge, Info
+from prometheus_client import make_wsgi_app, Gauge, Info, REGISTRY, write_to_textfile
 from waitress import serve
 
 from experiment import get_all_usage
@@ -60,14 +62,29 @@ def hello_metrics():
 
     return make_wsgi_app()
 
+def write_metrics_to_stdout():
+    with NamedTemporaryFile() as file:
+        write_to_textfile(file.name, REGISTRY)
+        with open(file.name, 'r') as f:
+            print(f.read())
+        print(file.name)
+
 def main():
-    logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
-    port = os.getenv('EXPORTER_PORT', 1987)
-    if USE_DEBUG_SERVER:
-        app.run(port=port)
+    parser = argparse.ArgumentParser(description='Blueridge Cable Usage Exporter')
+    parser.add_argument('--test', action='store_true', dest='test', help='Pull data once, output to stdout, and exit')
+    args = parser.parse_args()
+
+    if args.test:
+        hello_metrics()
+        write_metrics_to_stdout()
     else:
-        # https://stackoverflow.com/a/54381386/125170 - use Waitress, a production WSGI server
-        serve(app, host="0.0.0.0", port=port)
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+        port = os.getenv('EXPORTER_PORT', 1987)
+        if USE_DEBUG_SERVER:
+            app.run(port=port)
+        else:
+            # https://stackoverflow.com/a/54381386/125170 - use Waitress, a production WSGI server
+            serve(app, host="0.0.0.0", port=port)
 
 if __name__ == "__main__":
     main()
