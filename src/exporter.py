@@ -50,12 +50,14 @@ def hello_metrics():
     usage = {k: v for k, v in usage}
 
     for k in metrics.keys():
-        name, description = metrics[k]
-        g = get_gauge(name, description)
-        g.set(float(usage[k]))
+        if k in usage:
+            name, description = metrics[k]
+            g = get_gauge(name, description)
+            g.set(float(usage[k]))
 
-    g = get_gauge('blueridge_days_remaining', 'Days remaining in this cycle')
-    g.set(int(usage['monthly_cycle'].split()[0]))
+    if 'monthly_cycle' in usage:
+        g = get_gauge('blueridge_days_remaining', 'Days remaining in this cycle')
+        g.set(int(usage['monthly_cycle'].split()[0]))
 
     i = get_info('blueridge_plan', 'Blueridge service information')
     i.info({k: v for k, v in usage.items() if k in ['mac', 'downstream', 'upstream']})
