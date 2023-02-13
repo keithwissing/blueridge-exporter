@@ -46,7 +46,7 @@ def get_usage_data(br, uid):
     json_data = br.response().read()
     return json_data
 
-def find_usage_data(json_data):
+def parse_usage_data(json_data):
     ct = json.loads(json_data)
     soup = BeautifulSoup(ct['content'], 'html.parser')
     labels = soup.find_all('div', class_='label')
@@ -67,12 +67,12 @@ def parse_usage_string(usage_str):
     logging.info(usage_str)
     labels = ['downstream', 'upstream', 'mac', 'used', 'used_up', 'used_down', 'limit', 'remaining']
     m = re.match(
-        r'CABLE MODEM Up to (.+) Download/(.+) Upload MAC: (.+) You have used (.+): (.+) upload & (.+) download. Your limit is (.+). You have (.+) remaining.',
+        r'.+MODEM Up to (.+) Download/(.+) Upload MAC: (.+) You have used (.+): (.+) upload & (.+) download. Your limit is (.+). You have (.+) remaining.',
         usage_str)
     if not m:
         labels = ['downstream', 'upstream', 'mac']
         m = re.match(
-            r'CABLE MODEM Up to (.+) Download/(.+) Upload MAC: (.+)',
+            r'.+MODEM Up to (.+) Download/(.+) Upload MAC: (.+)',
             usage_str)
         if not m:
             logging.error('Usage String did not match expected format')
@@ -111,7 +111,7 @@ def experiment(username: str, password: str):
     uid = find_uid(html)
 
     json_data = get_usage_data(br, uid)
-    things = find_usage_data(json_data)
+    things = parse_usage_data(json_data)
 
     html = get_internet_usage(br)
     usage = find_another_data(html)

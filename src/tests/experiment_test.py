@@ -2,7 +2,7 @@ import unittest
 
 import mechanize
 
-from src.experiment import parse_usage_string, find_usage_data, to_gb
+from src.experiment import parse_usage_string, parse_usage_data, to_gb
 
 class MyTestCase(unittest.TestCase):
 
@@ -15,13 +15,16 @@ class MyTestCase(unittest.TestCase):
         usage = parse_usage_string('CABLE MODEM Up to 500Mbps Download/12Mbps Upload MAC: AB:CD:XX:XX:XX:XX')
         self.assertEqual(3, len(usage))
         self.assertTrue(all(isinstance(x, tuple) for x in usage))
+        usage = parse_usage_string('INTERNET MODEM Up to 500Mbps Download/12Mbps Upload MAC: 50:09:59:72:D6:39')
+        self.assertEqual(3, len(usage))
+        self.assertTrue(all(isinstance(x, tuple) for x in usage))
 
     def test_find_usage_data(self):
         data = '''{"content":"
         <div class=\\"label\\">Monthly Cycle:</div><div class=\\"value\\">20 Days Remaining</div>
         <div class=\\"label\\">Data Used:</div><div class=\\"value\\">300.6 GB</div>
         "}'''.replace('\n', '')
-        usage = find_usage_data(data)
+        usage = parse_usage_data(data)
         self.assertEqual(2, len(usage))
         self.assertTrue(all(isinstance(x, tuple) for x in usage))
 
