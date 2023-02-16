@@ -14,4 +14,4 @@ USER nobody:nogroup
 
 ENTRYPOINT ["/usr/bin/env", "python", "./src/exporter.py"]
 
-HEALTHCHECK --timeout=10s CMD /usr/bin/env python healthcheck.py
+HEALTHCHECK --timeout=10s CMD /usr/bin/env python ./src/healthcheck.py
