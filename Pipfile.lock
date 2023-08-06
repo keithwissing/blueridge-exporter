@@ -21,7 +21,7 @@
                 "sha256:492bbc69dca35d12daac71c4db1bfff0c876c00ef4a2ffacce226d4638eb72da",
                 "sha256:bd2520ca0d9d7d12694a53d44ac482d181b4ec1888909b035a3dbf40d0f57d4a"
             ],
-            "markers": "python_version >= '3.6'",
+            "markers": "python_full_version >= '3.6.0'",
             "version": "==4.12.2"
         },
         "blinker": {
@@ -57,12 +57,10 @@
         },
         "get-docker-secret": {
             "hashes": [
-                "sha256:7c37ae90ff9c01878ecde91e8545813e31ed1b2bcb859a050edbfbfeb2023438",
-                "sha256:c1b8e6e70ca84082b5b3feb3a76114d452f06351083c725f3002dd8da7f546c1",
-                "sha256:cc6809c56a6c6f8171f60735c6d6b2f701b2f7d38a9a0b2eb153602f6131189a"
+                "sha256:3b39eab1caa69b4f7863fd3d9b419e0435c25f4747a1847de5a08161fe8d3410"
             ],
             "index": "pypi",
-            "version": "==1.0.2"
+            "version": "==2.0.0"
         },
         "html5lib": {
             "hashes": [
