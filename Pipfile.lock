@@ -165,11 +165,11 @@
         },
         "mechanize": {
             "hashes": [
-                "sha256:5e86ac0777357e006eb04cd28f7ed9f811d48dffa603d3891ac6d2b92280dc91",
-                "sha256:961fd171b5eb37a7578fce62ba81ba85803dff3c5ba4ac24f6f569ae27198439"
+                "sha256:69a5edb0962f921e8b10837368c2242d8ad049f0b91ff699ce7f601bfc431521",
+                "sha256:eafc3350fbcd895f4715712f0bdc7e544a1b2883e85f1987423b86bd9dd93ff7"
             ],
             "index": "pypi",
-            "version": "==0.4.8"
+            "version": "==0.4.9"
         },
         "prometheus-client": {
             "hashes": [
